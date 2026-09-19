@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SURAKSHA AI — Think. Check. Report.</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: { colors: {
+    navy: '#0B2447', navy2:'#123B70', navy3:'#1B4F9C',
+    saffron:'#FF9933', igreen:'#138808', soft:'#F4F7FB'
+  }, fontFamily:{ sans:['Inter','system-ui','sans-serif'] } } }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F4F7FB}
+  .tricolor{background:linear-gradient(90deg,#FF9933 0%,#FF9933 33%,#ffffff 33%,#ffffff 66%,#138808 66%,#138808 100%);height:4px}
+  .card{background:#fff;border-radius:1rem;box-shadow:0 4px 20px rgba(11,36,71,.07);border:1px solid #E6ECF5}
+  .btn-primary{background:#0B2447;color:#fff;transition:.25s}
+  .btn-primary:hover{background:#123B70;transform:translateY(-1px);box-shadow:0 8px 20px rgba(11,36,71,.25)}
+  .btn-secondary{background:#fff;color:#0B2447;border:2px solid #0B2447;transition:.25s}
+  .btn-secondary:hover{background:#0B2447;color:#fff}
+  .page{display:none;animation:fadein .35s ease}
+  .page.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .risk-CRITICAL{background:#7f1d1d;color:#fff}
+  .risk-HIGH{background:#dc2626;color:#fff}
+  .risk-MEDIUM{background:#d97706;color:#fff}
+  .risk-LOW{background:#15803d;color:#fff}
+  .sev-high{border-left:5px solid #dc2626}
+  .sev-medium{border-left:5px solid #d97706}
+  .sev-low{border-left:5px solid #15803d}
+  .spinner{width:44px;height:44px;border:5px solid #dbe6f5;border-top-color:#0B2447;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .barfill{transition:width 1s ease}
+  .tab-active{background:#0B2447!important;color:#fff!important}
+  .cat-active{background:#123B70!important;color:#fff!important;border-color:#123B70!important}
+  .pulse{animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}50%{box-shadow:0 0 0 12px rgba(220,38,38,0)}}
+  .flow-arrow::after{content:'→';margin:0 .4rem;color:#94a3b8;font-weight:700}
+  .flow-arrow:last-child::after{content:''}
+  @media(max-width:767px){.flow-arrow::after{content:'↓';display:block;margin:.2rem auto}}
+  .demo-banner{background:linear-gradient(90deg,#0B2447,#1B4F9C)}
+  .focusable:focus{outline:3px solid #FF9933;outline-offset:2px}
+  input:focus,textarea:focus,select:focus,button:focus{outline:3px solid rgba(27,79,156,.45);outline-offset:1px}
+  .badge-earned{background:linear-gradient(135deg,#FF9933,#e07b12);color:#fff}
+  .scorebar{height:10px;border-radius:99px;background:#e2e8f0;overflow:hidden}
+  .chart-bar{transition:height 1s ease}
+</style>
+</head>
+<body class="text-slate-800">
+
+<!-- ================= HEADER ================= -->
+<div class="tricolor"></div>
+<header class="bg-white/95 backdrop-blur sticky top-0 z-40 border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <button onclick="nav('home')" class="flex items-center gap-2 focusable" aria-label="SURAKSHA AI Home">
+      <div class="w-10 h-10 rounded-xl bg-navy flex items-center justify-center text-white font-black text-lg shadow-md">🛡️</div>
+      <div class="text-left">
+        <div class="font-extrabold text-navy leading-none text-lg">SURAKSHA <span class="text-saffron">AI</span></div>
+        <div class="text-[10px] text-slate-500 font-semibold tracking-wide" data-i="tag">Think. Check. Report.</div>
+      </div>
+    </button>
+    <nav class="hidden lg:flex items-center gap-1 text-sm font-semibold" aria-label="Main navigation">
+      <button onclick="nav('home')" class="navlink px-3 py-2 rounded-lg hover:bg-soft text-navy" data-i="home">Home</button>
+      <button onclick="nav('check')" class="navlink px-3 py-2 rounded-lg hover:bg-soft text-navy" data-i="check">Check Scam</button>
+      <button onclick="nav('pay')" class="navlink px-3 py-2 rounded-lg hover:bg-soft text-navy" data-i="pay">Before You Pay</button>
+      <button onclick="nav('learn')" class="navlink px-3 py-2 rounded-lg hover:bg-soft text-navy" data-i="learn">Learn</button>
+      <button onclick="nav('report')" class="navlink px-3 py-2 rounded-lg hover:bg-soft text-navy" data-i="report">Report</button>
+      <button onclick="nav('dashboard')" class="navlink px-3 py-2 rounded-lg hover:bg-soft text-navy" data-i="dash">Dashboard</button>
+      <button onclick="nav('about')" class="navlink px-3 py-2 rounded-lg hover:bg-soft text-navy" data-i="about">About</button>
+    </nav>
+    <div class="flex items-center gap-2">
+      <label class="sr-only" for="langsel">Select language</label>
+      <select id="langsel" onchange="setLang(this.value)" class="text-sm font-semibold border-2 border-navy rounded-lg px-2 py-1.5 bg-white text-navy">
+        <option value="en">English</option><option value="hi">हिन्दी</option><option value="pa">ਪੰਜਾਬੀ</option>
+        <option value="bn">বাংলা</option><option value="mr">मराठी</option><option value="ta">தமிழ்</option>
+        <option value="te">తెలుగు</option><option value="gu">ગુજરાતી</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<!-- LIVE DEMO BANNER -->
+<div id="demoBanner" class="demo-banner text-white hidden sticky top-[65px] z-30">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+    <span class="bg-saffron text-navy text-xs font-black px-2 py-1 rounded">LIVE DEMO</span>
+    <span id="demoStepText" class="font-semibold text-sm flex-1">Step 1</span>
+    <button onclick="demoNext()" class="bg-white text-navy font-bold text-sm px-4 py-1.5 rounded-lg hover:bg-slate-100">Next →</button>
+    <button onclick="endDemo()" class="text-white/80 text-sm underline">End demo</button>
+  </div>
+</div>
+
+<main class="max-w-7xl mx-auto px-4 pb-28 lg:pb-12">
+
+<!-- ================= HOME ================= -->
+<section id="page-home" class="page active">
+  <div class="py-10 md:py-16 text-center">
+    <div class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-full px-4 py-1.5 text-xs font-bold text-navy shadow-sm mb-6">
+      🇮🇳 <span data-i="badge">Multilingual Citizen Digital-Safety Assistant</span>
+    </div>
+    <h1 class="text-4xl md:text-6xl font-black text-navy tracking-tight">SURAKSHA <span class="text-saffron">AI</span></h1>
+    <p class="text-2xl md:text-3xl font-extrabold text-navy2 mt-3" data-i="tag">Think. Check. Report.</p>
+    <p class="text-slate-600 max-w-2xl mx-auto mt-4 text-lg" data-i="sub">Your multilingual AI assistant for safer digital communication.</p>
+    <div class="flex flex-wrap justify-center gap-3 mt-8">
+      <button onclick="nav('check')" class="btn-primary text-lg font-bold px-8 py-4 rounded-xl shadow-lg focusable" data-i="ctaCheck">🔍 Check a Scam</button>
+      <button onclick="startDemo()" class="pulse bg-red-600 hover:bg-red-700 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-lg transition">▶ START LIVE DEMO</button>
+    </div>
+    <div class="flex flex-wrap justify-center gap-3 mt-4">
+      <button onclick="nav('pay')" class="btn-secondary font-bold px-5 py-2.5 rounded-xl" data-i="pay">Before You Pay</button>
+      <button onclick="nav('learn')" class="btn-secondary font-bold px-5 py-2.5 rounded-xl" data-i="learn">Learn Safety</button>
+      <button onclick="nav('report')" class="btn-secondary font-bold px-5 py-2.5 rounded-xl" data-i="report">Report / Get Help</button>
+    </div>
+    <!-- Flow -->
+    <div class="mt-12 card p-6 max-w-4xl mx-auto">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4" data-i="how">How SURAKSHA works</p>
+      <div class="flex flex-col md:flex-row items-center justify-center font-bold text-navy text-sm md:text-base">
+        <span class="flow-arrow">📩 <span data-i="f1">Receive</span></span>
+        <span class="flow-arrow">🔍 <span data-i="f2">Check</span></span>
+        <span class="flow-arrow">💡 <span data-i="f3">Understand</span></span>
+        <span class="flow-arrow">🛡️ <span data-i="f4">Protect</span></span>
+        <span class="flow-arrow">🚨 <span data-i="f5">Report</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature cards -->
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
+    <button onclick="nav('check')" class="card p-6 text-left hover:-translate-y-1 transition duration-300">
+      <div class="text-3xl mb-3">🔍</div><h3 class="font-extrabold text-navy text-lg">Explainable AI Scam Check</h3>
+      <p class="text-sm text-slate-600 mt-2">See exactly WHY a message, link, number or payment request may be risky — signal by signal.</p>
+    </button>
+    <button onclick="nav('pay')" class="card p-6 text-left hover:-translate-y-1 transition duration-300 ring-2 ring-saffron/60">
+      <div class="text-3xl mb-3">⏸️</div><h3 class="font-extrabold text-navy text-lg">Before You Pay</h3>
+      <p class="text-sm text-slate-600 mt-2">A 30-second pause-and-verify checklist before any payment. Take a moment. Check before you trust.</p>
+    </button>
+    <button onclick="nav('learn')" class="card p-6 text-left hover:-translate-y-1 transition duration-300">
+      <div class="text-3xl mb-3">🎓</div><h3 class="font-extrabold text-navy text-lg">Learn by Scenario</h3>
+      <p class="text-sm text-slate-600 mt-2">Interactive scam scenarios — fake KYC, parcel, jobs, OTP scams — with badges and a safety score.</p>
+    </button>
+    <button onclick="nav('report')" class="card p-6 text-left hover:-translate-y-1 transition duration-300">
+      <div class="text-3xl mb-3">🚨</div><h3 class="font-extrabold text-navy text-lg">Official Reporting Routes</h3>
+      <p class="text-sm text-slate-600 mt-2">Fast navigation to India's official channels: helpline 1930, cybercrime.gov.in and Chakshu.</p>
+    </button>
+  </div>
+
+  <!-- Privacy by design -->
+  <div class="card p-6 md:p-8 mb-14" id="privacy">
+    <h2 class="text-2xl font-black text-navy mb-1">🔒 Privacy by Design</h2>
+    <p class="text-slate-500 text-sm mb-5">What SURAKSHA stores, and what it never asks for.</p>
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div class="bg-soft rounded-xl p-4"><b class="text-navy">✅ We minimise data.</b><p class="text-slate-600 mt-1">No unnecessary personal data is collected. Uploaded content is used only for the analysis you request.</p></div>
+      <div class="bg-soft rounded-xl p-4"><b class="text-navy">🚫 We never ask for secrets.</b><p class="text-slate-600 mt-1">SURAKSHA will never request your OTP, PIN, password or banking credentials. Anyone who does is a red flag.</p></div>
+      <div class="bg-soft rounded-xl p-4"><b class="text-navy">📊 Dashboards use anonymised data.</b><p class="text-slate-600 mt-1">Trend views use aggregated, anonymised (demo/synthetic) data. You can delete your demo analysis anytime.</p></div>
+    </div>
+    <p class="text-xs text-slate-500 mt-4">No system is 100% secure — SURAKSHA is designed to reduce risk, not eliminate it. In this prototype, analysis stays in your browser session.</p>
+  </div>
+
+  <div class="text-center card p-10 mb-6 bg-gradient-to-br from-navy to-navy3 !border-0">
+    <h2 class="text-3xl font-black text-white">SURAKSHA AI</h2>
+    <p class="text-saffron font-extrabold text-xl mt-1" data-i="tag">Think. Check. Report.</p>
+    <p class="text-blue-100 mt-3 text-lg">"Don't wait to become a victim. Check before you trust."</p>
+    <button onclick="nav('check')" class="mt-6 bg-white text-navy font-black px-8 py-3.5 rounded-xl hover:bg-slate-100 transition" data-i="ctaCheck">🔍 Check a Scam</button>
+  </div>
+</section>
+
+<!-- ================= CHECK SCAM ================= -->
+<section id="page-check" class="page">
+  <div class="py-8">
+    <h1 class="text-3xl md:text-4xl font-black text-navy" data-i="checkTitle">🔍 Check a Scam</h1>
+    <p class="text-slate-600 mt-2" data-i="checkSub">Paste a message, link, number or payment request. SURAKSHA explains the risk in simple words.</p>
+
+    <!-- Demo examples -->
+    <div class="mt-5 card p-4">
+      <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Demo examples — <span class="text-red-600">NOT real messages</span></p>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="loadDemoMsg(0)" class="text-xs font-bold bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-full hover:bg-red-100">⚡ Fake electricity bill</button>
+        <button onclick="loadDemoMsg(1)" class="text-xs font-bold bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-full hover:bg-red-100">📦 Fake parcel</button>
+        <button onclick="loadDemoMsg(2)" class="text-xs font-bold bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-full hover:bg-red-100">💼 Fake job offer</button>
+        <button onclick="loadDemoMsg(3)" class="text-xs font-bold bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-full hover:bg-red-100">🪪 Fake KYC</button>
+        <button onclick="loadDemoMsg(4)" class="text-xs font-bold bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full hover:bg-green-100">✅ Normal safe message</button>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-5 gap-6 mt-6">
+      <div class="lg:col-span-2 card p-5">
+        <p class="font-bold text-navy mb-3" data-i="whatCheck">What do you want to check?</p>
+        <div class="grid grid-cols-3 gap-2 mb-4" role="tablist" aria-label="Input type">
+          <button class="itab tab-active text-xs font-bold py-2.5 rounded-lg bg-soft text-navy" data-t="message" onclick="setInputType('message',this)">💬 Message</button>
+          <button class="itab text-xs font-bold py-2.5 rounded-lg bg-soft text-navy" data-t="url" onclick="setInputType('url',this)">🔗 URL</button>
+          <button class="itab text-xs font-bold py-2.5 rounded-lg bg-soft text-navy" data-t="phone" onclick="setInputType('phone',this)">📞 Number</button>
+          <button class="itab text-xs font-bold py-2.5 rounded-lg bg-soft text-navy" data-t="payment" onclick="setInputType('payment',this)">💳 Payment</button>
+          <button class="itab text-xs font-bold py-2.5 rounded-lg bg-soft text-navy" data-t="screenshot" onclick="setInputType('screenshot',this)">🖼️ Screenshot</button>
+          <button class="itab text-xs font-bold py-2.5 rounded-lg bg-soft text-navy" data-t="qr" onclick="setInputType('qr',this)">▦ QR Code</button>
+        </div>
+        <div id="uploadZone" class="hidden mb-3">
+          <label class="block border-2 border-dashed border-navy3/40 rounded-xl p-5 text-center cursor-pointer hover:bg-soft transition">
+            <input type="file" accept="image/*" class="hidden" onchange="mockOCR(this)">
+            <span class="text-3xl">🖼️</span>
+            <p class="text-sm font-bold text-navy mt-1">Upload screenshot / QR image</p>
+            <p class="text-xs text-slate-500">Simulated OCR will extract text (demo)</p>
+          </label>
+          <p id="ocrStatus" class="text-xs text-igreen font-bold mt-2 hidden">✅ Screenshot processed via simulated OCR — extracted text placed below.</p>
+        </div>
+        <label for="scamInput" class="text-sm font-bold text-navy" data-i="pasteHere">Paste content here</label>
+        <textarea id="scamInput" rows="6" class="w-full mt-1 border-2 border-slate-200 rounded-xl p-3 text-sm" placeholder="e.g. URGENT: Your account will be blocked today..."></textarea>
+        <p id="inputError" class="text-red-600 text-sm font-bold hidden mt-1">⚠️ Please enter some content to analyze.</p>
+        <p class="font-bold text-navy mt-4 mb-2 text-sm" data-i="channel">Communication channel</p>
+        <div class="flex flex-wrap gap-2" id="catRow">
+          <button class="cat cat-active text-xs font-bold px-3 py-1.5 rounded-full border-2 border-slate-200 bg-white" onclick="setCat('SMS',this)">SMS</button>
+          <button class="cat text-xs font-bold px-3 py-1.5 rounded-full border-2 border-slate-200 bg-white" onclick="setCat('WhatsApp',this)">WhatsApp</button>
+          <button class="cat text-xs font-bold px-3 py-1.5 rounded-full border-2 border-slate-200 bg-white" onclick="setCat('Email',this)">Email</button>
+          <button class="cat text-xs font-bold px-3 py-1.5 rounded-full border-2 border-slate-200 bg-white" onclick="setCat('Website',this)">Website</button>
+          <button class="cat text-xs font-bold px-3 py-1.5 rounded-full border-2 border-slate-200 bg-white" onclick="setCat('Phone Call',this)">Phone Call</button>
+          <button class="cat text-xs font-bold px-3 py-1.5 rounded-full border-2 border-slate-200 bg-white" onclick="setCat('Payment',this)">Payment</button>
+          <button class="cat text-xs font-bold px-3 py-1.5 rounded-full border-2 border-slate-200 bg-white" onclick="setCat('QR Code',this)">QR Code</button>
+        </div>
+        <button onclick="runAnalysis()" class="btn-primary w-full mt-5 py-4 rounded-xl font-black text-lg" data-i="analyze">🤖 Analyze with SURAKSHA AI</button>
+        <p class="text-[11px] text-slate-400 mt-2">SURAKSHA highlights risk indicators; it cannot guarantee whether a message is or is not a scam.</p>
+      </div>
+
+      <!-- Results -->
+      <div class="lg:col-span-3">
+        <div id="resultIdle" class="card p-10 text-center text-slate-400 h-full flex flex-col justify-center">
+          <div class="text-5xl mb-3">🛡️</div>
+          <p class="font-bold text-navy" data-i="resultsHere">Analysis results will appear here</p>
+          <p class="text-sm mt-1">Check → Understand → Protect → Report</p>
+        </div>
+        <div id="resultLoading" class="card p-10 text-center hidden">
+          <div class="spinner"></div>
+          <p class="font-bold text-navy mt-4">SURAKSHA AI is analyzing…</p>
+          <p id="loadingStep" class="text-sm text-slate-500 mt-1">Scanning for urgency & threat language…</p>
+        </div>
+        <div id="resultBox" class="hidden space-y-4"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BEFORE YOU PAY ================= -->
+<section id="page-pay" class="page">
+  <div class="py-8 max-w-3xl mx-auto">
+    <div class="text-center mb-6">
+      <span class="inline-block bg-saffron/15 text-saffron font-black text-xs px-3 py-1 rounded-full border border-saffron/40">KILLER FEATURE • SIMULATION ONLY — NO REAL PAYMENTS</span>
+      <h1 class="text-3xl md:text-4xl font-black text-navy mt-3">⏸️ BEFORE YOU PAY</h1>
+      <p class="text-slate-600 mt-2 text-lg font-semibold" data-i="paySub">"Take a moment. Check before you trust."</p>
+    </div>
+    <div class="card p-6">
+      <div class="grid md:grid-cols-3 gap-3">
+        <div><label class="text-sm font-bold text-navy" for="payAmt">Amount (₹)</label>
+          <input id="payAmt" type="number" min="0" class="w-full mt-1 border-2 border-slate-200 rounded-xl p-3" placeholder="e.g. 4999"></div>
+        <div><label class="text-sm font-bold text-navy" for="payTo">Recipient name</label>
+          <input id="payTo" type="text" class="w-full mt-1 border-2 border-slate-200 rounded-xl p-3" placeholder="Who is asking?"></div>
+        <div><label class="text-sm font-bold text-navy" for="payWhy">Reason / context</label>
+          <input id="payWhy" type="text" class="w-full mt-1 border-2 border-slate-200 rounded-xl p-3" placeholder="e.g. KYC update fee"></div>
+      </div>
+      <div class="mt-6 space-y-3" id="payChecklist">
+        <p class="font-black text-navy">Quick safety checklist</p>
+      </div>
+      <button onclick="evalPay()" class="btn-primary w-full mt-5 py-4 rounded-xl font-black text-lg">🛡️ Run Safety Check</button>
+      <p id="payError" class="text-red-600 font-bold text-sm mt-2 hidden">⚠️ Please answer all checklist questions.</p>
+    </div>
+    <div id="payResult" class="mt-5"></div>
+  </div>
+</section>
+
+<!-- ================= LEARN ================= -->
+<section id="page-learn" class="page">
+  <div class="py-8">
+    <h1 class="text-3xl md:text-4xl font-black text-navy">🎓 SURAKSHA Learn</h1>
+    <p class="text-slate-600 mt-2">Interactive scam scenarios. Choose what YOU would do — then learn the safer behaviour.</p>
+    <div class="grid lg:grid-cols-3 gap-6 mt-6">
+      <div class="lg:col-span-2 card p-6" id="scenarioBox"></div>
+      <div class="space-y-4">
+        <div class="card p-5">
+          <p class="font-black text-navy">📈 Digital Safety Score</p>
+          <p class="text-4xl font-black text-navy mt-2"><span id="safetyScore">0</span><span class="text-lg text-slate-400">/100</span></p>
+          <div class="scorebar mt-2"><div id="scoreFill" class="barfill h-full bg-igreen" style="width:0%"></div></div>
+          <p class="text-xs text-slate-500 mt-2">🔥 Streak: <span id="streak" class="font-bold">0</span> correct in a row</p>
+          <p class="text-[11px] text-slate-400 mt-2">This score is educational only — it is not a security guarantee.</p>
+        </div>
+        <div class="card p-5">
+          <p class="font-black text-navy mb-3">🏅 Badges</p>
+          <div class="space-y-2 text-sm" id="badgeBox"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REPORT ================= -->
+<section id="page-report" class="page">
+  <div class="py-8 max-w-4xl mx-auto">
+    <h1 class="text-3xl md:text-4xl font-black text-navy">🚨 Report / Get Help</h1>
+    <p class="text-slate-600 mt-2">SURAKSHA guides you to India's official reporting channels. SURAKSHA itself does not file police complaints.</p>
+    <div class="card p-4 mt-5 flex flex-col md:flex-row items-center justify-center font-bold text-navy text-sm md:text-base">
+      <span class="flow-arrow">🔍 Detect</span><span class="flow-arrow">💡 Explain</span><span class="flow-arrow">🛡️ Protect</span><span class="flow-arrow">🏛️ Official Reporting</span>
+    </div>
+
+    <!-- Lost money -->
+    <div class="card p-6 md:p-8 mt-6 border-2 !border-red-300 bg-red-50/50">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="pulse bg-red-600 text-white font-black px-4 py-2 rounded-xl text-lg">⚡ ACT NOW</span>
+        <h2 class="text-2xl font-black text-red-700">I already lost money</h2>
+      </div>
+      <p class="mt-3 font-semibold text-slate-700">"Contact the official cyber-fraud reporting channel as soon as possible." Reporting quickly can improve the chance of freezing fraudulent transactions.</p>
+      <div class="grid md:grid-cols-2 gap-4 mt-5">
+        <a href="tel:1930" class="block bg-red-600 hover:bg-red-700 transition text-white rounded-2xl p-5 text-center shadow-lg">
+          <div class="text-3xl font-black">📞 1930</div>
+          <p class="font-bold mt-1">National Cybercrime Helpline</p>
+          <p class="text-xs text-red-100 mt-1">Call immediately if money was transferred</p>
+        </a>
+        <a href="https://www.cybercrime.gov.in/" target="_blank" rel="noopener" class="block bg-navy hover:bg-navy2 transition text-white rounded-2xl p-5 text-center shadow-lg">
+          <div class="text-2xl font-black">🏛️ cybercrime.gov.in</div>
+          <p class="font-bold mt-1">National Cybercrime Reporting Portal</p>
+          <p class="text-xs text-blue-100 mt-1">File an official complaint online ↗</p>
+        </a>
+      </div>
+      <div class="bg-white rounded-xl p-4 mt-4 text-sm">
+        <p class="font-black text-navy mb-2">While you report, also:</p>
+        <ul class="space-y-1 text-slate-700">
+          <li>1️⃣ Call your bank's official helpline to block cards / freeze UPI.</li>
+          <li>2️⃣ Save screenshots, numbers, UPI IDs and transaction IDs as evidence.</li>
+          <li>3️⃣ Do not send more money to "recover" funds — recovery-fee demands are a common second scam.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Suspicious communication -->
+    <div class="card p-6 md:p-8 mt-6">
+      <h2 class="text-2xl font-black text-navy">📱 I received a suspicious call / SMS / WhatsApp</h2>
+      <p class="text-slate-600 mt-2 text-sm">No money lost yet? Report suspected fraud communication through the Government of India's Chakshu facility on Sanchar Saathi.</p>
+      <a href="https://sancharsaathi.gov.in/sfc/" target="_blank" rel="noopener" class="inline-block mt-4 btn-primary font-bold px-6 py-3 rounded-xl">🛰️ Report via Chakshu (Sanchar Saathi) ↗</a>
+      <p class="text-xs text-slate-500 mt-3">Also: block the sender, warn family members, and never call back unknown international numbers.</p>
+    </div>
+
+    <div class="card p-5 mt-6 bg-soft text-sm">
+      <p class="font-black text-navy">🔒 Important safety note</p>
+      <p class="text-slate-600 mt-1">SURAKSHA and genuine officials will <b>never</b> ask for your OTP, PIN, password or banking credentials. Official links above go to Government of India portals. SURAKSHA is a guidance layer only and cannot guarantee recovery of lost money.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DASHBOARD ================= -->
+<section id="page-dashboard" class="page">
+  <div class="py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-3xl md:text-4xl font-black text-navy">📊 SURAKSHA Intelligence Dashboard</h1>
+        <p class="text-slate-600 mt-1">Anonymised scam-trend visualization for authorised users.</p>
+      </div>
+      <span class="bg-amber-100 text-amber-800 border border-amber-300 font-black text-xs px-3 py-2 rounded-lg">⚠️ DEMONSTRATION / SYNTHETIC DATA — NOT REAL GOVERNMENT STATISTICS</span>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+      <div class="card p-5"><p class="text-xs font-bold text-slate-400 uppercase">Reports analysed</p><p class="text-3xl font-black text-navy mt-1">12,847</p><p class="text-xs text-igreen font-bold mt-1">▲ 18% this week</p></div>
+      <div class="card p-5"><p class="text-xs font-bold text-slate-400 uppercase">High-risk reports</p><p class="text-3xl font-black text-red-600 mt-1">4,213</p><p class="text-xs text-red-500 font-bold mt-1">▲ 26% this week</p></div>
+      <div class="card p-5"><p class="text-xs font-bold text-slate-400 uppercase">Top channel</p><p class="text-3xl font-black text-navy mt-1">WhatsApp</p><p class="text-xs text-slate-500 mt-1">38% of reports</p></div>
+      <div class="card p-5"><p class="text-xs font-bold text-slate-400 uppercase">Languages used</p><p class="text-3xl font-black text-navy mt-1">8</p><p class="text-xs text-slate-500 mt-1">Hindi 41% • English 32%</p></div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6 mt-6">
+      <div class="card p-6">
+        <p class="font-black text-navy mb-4">Scam categories (synthetic)</p>
+        <div id="catChart" class="flex items-end gap-2 h-52" role="img" aria-label="Bar chart of scam categories"></div>
+      </div>
+      <div class="card p-6">
+        <p class="font-black text-navy mb-2">Weekly high-risk trend (synthetic)</p>
+        <svg viewBox="0 0 320 140" class="w-full h-52" role="img" aria-label="Line chart of weekly trend">
+          <polyline fill="none" stroke="#e2e8f0" stroke-width="1" points="0,110 320,110"/>
+          <polyline fill="rgba(27,79,156,.12)" stroke="none" points="10,95 55,85 100,90 145,70 190,60 235,45 280,30 310,22 310,120 10,120"/>
+          <polyline fill="none" stroke="#123B70" stroke-width="3" stroke-linecap="round" points="10,95 55,85 100,90 145,70 190,60 235,45 280,30 310,22"/>
+          <circle cx="310" cy="22" r="5" fill="#FF9933"/>
+          <text x="10" y="135" font-size="9" fill="#94a3b8">Mon</text><text x="145" y="135" font-size="9" fill="#94a3b8">Thu</text><text x="290" y="135" font-size="9" fill="#94a3b8">Sun</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6 mt-6">
+      <div class="card p-6 lg:col-span-2 border-2 !border-saffron/50">
+        <p class="font-black text-saffron text-xs uppercase tracking-widest">🔥 Emerging Scam Pattern</p>
+        <h3 class="text-xl font-black text-navy mt-1">"Fake electricity disconnection messages"</h3>
+        <p class="text-sm text-slate-600 mt-2">Synthetic trend: +142% in 7 days. SMS/WhatsApp messages threaten same-day power disconnection and push a fake "bill payment" link or unknown personal number.</p>
+        <div class="grid md:grid-cols-2 gap-3 mt-4 text-sm">
+          <div class="bg-soft rounded-xl p-4"><b class="text-navy">Indicators</b><ul class="mt-1 text-slate-600 list-disc list-inside"><li>"Tonight at 9:30 PM" style deadlines</li><li>Personal mobile numbers, not official IDs</li><li>Shortened/suspicious payment links</li></ul></div>
+          <div class="bg-soft rounded-xl p-4"><b class="text-navy">Recommended awareness action</b><p class="text-slate-600 mt-1">Advise citizens to check dues only on the official electricity-board app/website and never pay via links in unsolicited messages.</p></div>
+        </div>
+      </div>
+      <div class="card p-6">
+        <p class="font-black text-navy mb-3">Channels (synthetic)</p>
+        <div class="space-y-3 text-sm" id="chanChart"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section id="page-about" class="page">
+  <div class="py-8 max-w-4xl mx-auto">
+    <h1 class="text-3xl md:text-4xl font-black text-navy">🤝 Trust & Transparency</h1>
+    <p class="text-slate-600 mt-2">SURAKSHA AI is a citizen safety/guidance layer — not a government system and not a replacement for law enforcement or official cybercrime reporting.</p>
+    <div class="grid md:grid-cols-2 gap-6 mt-6">
+      <div class="card p-6 border-t-4 !border-t-igreen">
+        <h2 class="font-black text-igreen text-lg">✅ SURAKSHA DOES</h2>
+        <ul class="mt-3 space-y-2 text-sm text-slate-700">
+          <li>🔍 Detect risk indicators in messages, links, numbers and payment requests</li>
+          <li>💡 Explain WHY something looks risky, in simple words</li>
+          <li>🛡️ Give immediate protection guidance</li>
+          <li>🇮🇳 Provide vernacular education in 8 Indian languages</li>
+          <li>🏛️ Navigate you to existing official reporting channels (1930, cybercrime.gov.in, Chakshu)</li>
+          <li>📊 Demonstrate anonymised, synthetic trend dashboards</li>
+        </ul>
+      </div>
+      <div class="card p-6 border-t-4 !border-t-red-500">
+        <h2 class="font-black text-red-600 text-lg">🚫 SURAKSHA DOES NOT</h2>
+        <ul class="mt-3 space-y-2 text-sm text-slate-700">
+          <li>❌ Guarantee that a message is or is not a scam</li>
+          <li>❌ Replace police or law-enforcement processes</li>
+          <li>❌ Perform or process financial transactions</li>
+          <li>❌ Ask for passwords, OTPs, PINs or banking credentials</li>
+          <li>❌ Guarantee recovery of lost money</li>
+          <li>❌ Claim government partnership or certification</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card p-6 mt-6 bg-soft text-sm text-slate-600">
+      <p class="font-black text-navy mb-1">🧠 About the AI</p>
+      <p>Analysis runs through an abstracted service layer (<code class="bg-white px-1 rounded">analyzeScam(input)</code>) returning structured, explainable results. This prototype uses a transparent rule-based signal engine; a production AI model can replace it behind the same interface, server-side, without exposing keys in the frontend. Results are probabilistic indicators — never certainty.</p>
+      <button onclick="clearDemoData()" class="mt-3 btn-secondary text-sm font-bold px-4 py-2 rounded-lg">🗑️ Delete my demo analysis data</button>
+      <p id="clearMsg" class="text-igreen font-bold mt-2 hidden">✅ Demo analysis and learning data cleared from this browser.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-navy text-white mt-6 hidden lg:block">
+  <div class="tricolor"></div>
+  <div class="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-3 gap-6 text-sm">
+    <div><p class="font-black text-lg">🛡️ SURAKSHA AI</p><p class="text-blue-200 mt-1" data-i="tag">Think. Check. Report.</p><p class="text-blue-300/70 text-xs mt-2">A safety & guidance layer. Not affiliated with, partnered with, or certified by any government body.</p></div>
+    <div><p class="font-bold text-saffron">Official channels</p>
+      <p class="mt-1"><a class="underline" href="tel:1930">📞 1930 — Cybercrime Helpline</a></p>
+      <p><a class="underline" href="https://www.cybercrime.gov.in/" target="_blank" rel="noopener">cybercrime.gov.in ↗</a></p>
+      <p><a class="underline" href="https://sancharsaathi.gov.in/sfc/" target="_blank" rel="noopener">Chakshu — Sanchar Saathi ↗</a></p></div>
+    <div><p class="font-bold text-saffron">Remember</p><p class="text-blue-200 mt-1">Never share OTP, PIN or passwords. Don't wait to become a victim — check before you trust.</p></div>
+  </div>
+</footer>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-40 shadow-[0_-4px_16px_rgba(11,36,71,.08)]" aria-label="Mobile navigation">
+  <div class="grid grid-cols-5 text-[11px] font-bold text-navy">
+    <button onclick="nav('home')" class="py-2.5 flex flex-col items-center gap-0.5"><span class="text-xl">🏠</span><span data-i="home">Home</span></button>
+    <button onclick="nav('check')" class="py-2.5 flex flex-col items-center gap-0.5"><span class="text-xl">🔍</span><span>Check</span></button>
+    <button onclick="nav('pay')" class="py-2.5 flex flex-col items-center gap-0.5"><span class="text-xl">⏸️</span><span>Pay</span></button>
+    <button onclick="nav('learn')" class="py-2.5 flex flex-col items-center gap-0.5"><span class="text-xl">🎓</span><span data-i="learn">Learn</span></button>
+    <button onclick="nav('report')" class="py-2.5 flex flex-col items-center gap-0.5"><span class="text-xl">🚨</span><span>Help</span></button>
+  </div>
+</nav>
+
+<script>
+/* =========================================================
+   SURAKSHA AI — prototype single-file app
+   Service layer: analyzeScam(input) — swap with real API later.
+   ========================================================= */
+
+/* ---------- i18n ---------- */
+const I18N = {
+ en:{tag:"Think. Check. Report.",sub:"Your multilingual AI assistant for safer digital communication.",home:"Home",check:"Check Scam",pay:"Before You Pay",learn:"Learn",report:"Report",dash:"Dashboard",about:"About",ctaCheck:"🔍 Check a Scam",badge:"Multilingual Citizen Digital-Safety Assistant",how:"How SURAKSHA works",f1:"Receive",f2:"Check",f3:"Understand",f4:"Protect",f5:"Report",checkTitle:"🔍 Check a Scam",checkSub:"Paste a message, link, number or payment request. SURAKSHA explains the risk in simple words.",analyze:"🤖 Analyze with SURAKSHA AI",whatCheck:"What do you want to check?",pasteHere:"Paste content here",channel:"Communication channel",resultsHere:"Analysis results will appear here",paySub:'"Take a moment. Check before you trust."'},
+ hi:{tag:"सोचिए। जाँचिए। रिपोर्ट कीजिए।",sub:"सुरक्षित डिजिटल संवाद के लिए आपका बहुभाषी AI सहायक।",home:"होम",check:"स्कैम जाँचें",pay:"भुगतान से पहले",learn:"सीखें",report:"रिपोर्ट",dash:"डैशबोर्ड",about:"परिचय",ctaCheck:"🔍 स्कैम जाँचें",badge:"नागरिकों के लिए बहुभाषी डिजिटल-सुरक्षा सहायक",how:"SURAKSHA कैसे काम करता है",f1:"संदेश मिला",f2:"जाँचें",f3:"समझें",f4:"बचाव",f5:"रिपोर्ट",checkTitle:"🔍 स्कैम जाँचें",checkSub:"संदेश, लिंक, नंबर या भुगतान अनुरोध पेस्ट करें। SURAKSHA आसान भाषा में जोखिम समझाएगा।",analyze:"🤖 SURAKSHA AI से जाँचें",whatCheck:"आप क्या जाँचना चाहते हैं?",pasteHere:"यहाँ पेस्ट करें",channel:"संचार माध्यम",resultsHere:"जाँच का परिणाम यहाँ दिखेगा",paySub:'"एक पल रुकिए। भरोसा करने से पहले जाँचिए।"'},
+ pa:{tag:"ਸੋਚੋ। ਜਾਂਚੋ। ਰਿਪੋਰਟ ਕਰੋ।",sub:"ਸੁਰੱਖਿਅਤ ਡਿਜੀਟਲ ਸੰਚਾਰ ਲਈ ਤੁਹਾਡਾ ਬਹੁ-ਭਾਸ਼ਾਈ AI ਸਹਾਇਕ।",home:"ਹੋਮ",check:"ਸਕੈਮ ਜਾਂਚੋ",pay:"ਭੁਗਤਾਨ ਤੋਂ ਪਹਿਲਾਂ",learn:"ਸਿੱਖੋ",report:"ਰਿਪੋਰਟ",dash:"ਡੈਸ਼ਬੋਰਡ",about:"ਬਾਰੇ",ctaCheck:"🔍 ਸਕੈਮ ਜਾਂਚੋ",checkTitle:"🔍 ਸਕੈਮ ਜਾਂਚੋ",analyze:"🤖 SURAKSHA AI ਨਾਲ ਜਾਂਚੋ"},
+ bn:{tag:"ভাবুন। যাচাই করুন। রিপোর্ট করুন।",sub:"নিরাপদ ডিজিটাল যোগাযোগের জন্য আপনার বহুভাষিক AI সহায়ক।",home:"হোম",check:"স্ক্যাম যাচাই",pay:"পেমেন্টের আগে",learn:"শিখুন",report:"রিপোর্ট",dash:"ড্যাশবোর্ড",about:"সম্পর্কে",ctaCheck:"🔍 স্ক্যাম যাচাই করুন",checkTitle:"🔍 স্ক্যাম যাচাই",analyze:"🤖 SURAKSHA AI দিয়ে বিশ্লেষণ"},
+ mr:{tag:"विचार करा. तपासा. तक्रार करा.",sub:"सुरक्षित डिजिटल संवादासाठी तुमचा बहुभाषिक AI सहाय्यक.",home:"होम",check:"स्कॅम तपासा",pay:"पैसे देण्यापूर्वी",learn:"शिका",report:"तक्रार",dash:"डॅशबोर्ड",about:"बद्दल",ctaCheck:"🔍 स्कॅम तपासा",checkTitle:"🔍 स्कॅम तपासा",analyze:"🤖 SURAKSHA AI ने तपासा"},
+ ta:{tag:"யோசி. சரிபார். புகார் செய்.",sub:"பாதுகாப்பான டிஜிட்டல் தொடர்புக்கு உங்கள் பன்மொழி AI உதவியாளர்.",home:"முகப்பு",check:"மோசடி சரிபார்",pay:"பணம் அனுப்பும் முன்",learn:"கற்றுக்கொள்",report:"புகார்",dash:"டாஷ்போர்டு",about:"பற்றி",ctaCheck:"🔍 மோசடியை சரிபார்",checkTitle:"🔍 மோசடி சரிபார்",analyze:"🤖 SURAKSHA AI மூலம் ஆய்வு"},
+ te:{tag:"ఆలోచించండి. తనిఖీ చేయండి. నివేదించండి.",sub:"సురక్షిత డిజిటల్ కమ్యూనికేషన్ కోసం మీ బహుభాషా AI సహాయకుడు.",home:"హోమ్",check:"స్కామ్ తనిఖీ",pay:"చెల్లింపుకు ముందు",learn:"నేర్చుకోండి",report:"నివేదిక",dash:"డాష్‌బోర్డ్",about:"గురించి",ctaCheck:"🔍 స్కామ్ తనిఖీ",checkTitle:"🔍 స్కామ్ తనిఖీ",analyze:"🤖 SURAKSHA AIతో విశ్లేషించండి"},
+ gu:{tag:"વિચારો. તપાસો. જાણ કરો.",sub:"સુરક્ષિત ડિજિટલ સંવાદ માટે તમારો બહુભાષી AI સહાયક.",home:"હોમ",check:"સ્કેમ તપાસો",pay:"ચુકવણી પહેલાં",learn:"શીખો",report:"રિપોર્ટ",dash:"ડેશબોર્ડ",about:"વિશે",ctaCheck:"🔍 સ્કેમ તપાસો",checkTitle:"🔍 સ્કેમ તપાસો",analyze:"🤖 SURAKSHA AI થી તપાસો"}
+};
+let LANG='en', SIMPLE=false;
+const t=k=>(I18N[LANG]&&I18N[LANG][k])||I18N.en[k]||k;
+function setLang(l){LANG=l;document.querySelectorAll('[data-i]').forEach(el=>{el.textContent=t(el.dataset.i)});if(lastResult)renderResult(lastResult);}
+function applyLang(){setLang(LANG)}
+
+/* ---------- Router ---------- */
+function nav(p){
+  document.querySelectorAll('.page').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById('page-'+p); if(el) el.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Signal definitions (Explainable AI) ---------- */
+const SIGNALS = {
+ urgency:{sev:'high',icon:'⏰',
+   name:{en:'Urgency / threat language',hi:'जल्दबाज़ी / धमकी वाली भाषा'},
+   tech:{en:'Time-pressure and threat phrasing ("urgent", "today", "will be blocked") is a classic social-engineering indicator used to bypass careful thinking.',hi:'"तुरंत", "आज ही", "ब्लॉक हो जाएगा" जैसी भाषा सोशल-इंजीनियरिंग का संकेत है, जो सोचने का समय नहीं देती।'},
+   simple:{en:'This message tries to scare you or rush you so you act without thinking. Real organisations give you time.',hi:'यह message आपको डराकर या जल्दी करवाकर पैसे या जानकारी लेने की कोशिश कर सकता है। असली संस्थाएँ समय देती हैं।'}},
+ payment:{sev:'high',icon:'💸',
+   name:{en:'Payment request',hi:'पैसे की माँग'},
+   tech:{en:'Unsolicited payment demands via links/UPI in messages are strongly correlated with payment fraud.',hi:'संदेश में लिंक/UPI से अचानक पैसे माँगना भुगतान धोखाधड़ी से जुड़ा आम संकेत है।'},
+   simple:{en:'It is asking you to send money quickly. Scammers often ask for small "fees" first. Never pay through links in messages.',hi:'यह आपसे जल्दी पैसे भेजने को कह रहा है। ठग पहले छोटी "फ़ीस" माँगते हैं। संदेश के लिंक से कभी पैसे न भेजें।'}},
+ impersonation:{sev:'medium',icon:'🎭',
+   name:{en:'Possible impersonation',hi:'नकली पहचान का संदेह'},
+   tech:{en:'The content claims authority (bank, government, utility, courier) without verifiable official identifiers — a common impersonation pattern.',hi:'यह खुद को बैंक/सरकार/बिजली विभाग/कूरियर बताता है, पर कोई आधिकारिक पहचान नहीं देता।'},
+   simple:{en:'The sender pretends to be a bank, government office or company. Real ones use official numbers and apps, not personal chats.',hi:'भेजने वाला बैंक या सरकारी दफ्तर होने का नाटक कर रहा है। असली संस्थाएँ आधिकारिक नंबर और app से बात करती हैं।'}},
+ sensitive:{sev:'high',icon:'🔑',
+   name:{en:'Sensitive-information request',hi:'गोपनीय जानकारी की माँग'},
+   tech:{en:'Requests for OTP/PIN/password/KYC credentials are never made by legitimate institutions over messages or calls.',hi:'असली संस्थाएँ कभी भी OTP/PIN/पासवर्ड message या call पर नहीं माँगतीं।'},
+   simple:{en:'It asks for OTP, PIN, password or card details. NEVER share these with anyone — no bank or official ever asks.',hi:'यह OTP, PIN या पासवर्ड माँग रहा है। इन्हें किसी को भी न बताएं — कोई बैंक या अधिकारी कभी नहीं माँगता।'}},
+ url:{sev:'high',icon:'🔗',
+   name:{en:'Suspicious URL pattern',hi:'संदिग्ध लिंक'},
+   tech:{en:'Link uses shorteners, non-HTTPS, odd domains or brand-lookalike patterns commonly seen in phishing infrastructure.',hi:'लिंक में short-URL, बिना HTTPS या नकली मिलते-जुलते domain हैं — phishing का आम तरीका।'},
+   simple:{en:'The link does not look like an official website. Clicking it may open a fake page that steals your details.',hi:'यह लिंक असली website जैसा नहीं है। इसे खोलने पर नकली पेज आपकी जानकारी चुरा सकता है।'}},
+ reward:{sev:'medium',icon:'🎁',
+   name:{en:'Too-good-to-be-true offer',hi:'लालच भरा ऑफ़र'},
+   tech:{en:'Guaranteed rewards, prizes, high returns or easy income are classic advance-fee / investment-fraud lures.',hi:'गारंटीड इनाम, लॉटरी या आसान कमाई का वादा — यह advance-fee धोखे का तरीका है।'},
+   simple:{en:'It promises easy money, prizes or guaranteed profit. If it sounds too good to be true, it usually is.',hi:'यह आसान पैसे या इनाम का वादा करता है। जो चीज़ बहुत अच्छी लगे, वह अक्सर धोखा होती है।'}},
+ unknownIntl:{sev:'medium',icon:'🌐',
+   name:{en:'Unfamiliar / international number pattern',hi:'अनजान / विदेशी नंबर'},
+   tech:{en:'Number pattern matches unfamiliar international prefixes or spoof-style formats frequently reported in fraud calls.',hi:'नंबर का पैटर्न विदेशी/अनजान prefix जैसा है, जो fraud calls में आम है।'},
+   simple:{en:'This number looks unfamiliar or foreign. Do not call back — verify through an official directory instead.',hi:'यह नंबर अनजान या विदेशी लगता है। वापस call न करें — पहले आधिकारिक स्रोत से जाँचें।'}}
+};
+
+/* ---------- Mock rule-based AI engine (replace with real API later) ---------- */
+async function analyzeScam(input){
+  // In production: POST to server-side AI endpoint (keys stay server-side). Same return shape.
+  const txt=(input.text||'').toLowerCase();
+  const found=[];
+  const add=(id)=>{if(!found.includes(id))found.push(id)};
+  if(/urgent|immediat|today|within \d+|expire|last chance|final notice|तुरंत|आज|जल्दी|abhi/.test(txt)) add('urgency');
+  if(/blocked|suspend|disconnect|legal action|arrest|penalty|fine|seize|बंद|कट/.test(txt)) add('urgency');
+  if(/pay|payment|upi|transfer|₹|rs\.?\s?\d|fee|deposit|recharge|bill/.test(txt)) add('payment');
+  if(/otp|pin\b|password|cvv|aadhaar|aadhar|pan card|account number|card details|kyc detail/.test(txt)) add('sensitive');
+  if(/bank|sbi|hdfc|icici|electricity|power|kyc|customs|police|income tax|rbi|government|courier|delivery|parcel|fedex|bluedart|telecom|trai/.test(txt)) add('impersonation');
+  if(/(bit\.ly|tinyurl|t\.co\/|http:\/\/|\.xyz|\.top|\.tk|\.buzz|-kyc|-verify|login-|secure-|update-|\.info\b)/.test(txt)) add('url');
+  if(input.type==='url' && txt.trim()) add('url');
+  if(/won|winner|lottery|prize|lucky|cashback|guaranteed return|double your money|earn ₹|earn rs|work from home.*(earn|salary)|part.?time.*earn/.test(txt)) add('reward');
+  if(input.type==='phone' && /^\s*(\+(?!91)\d{1,3})/.test(input.text||'')) add('unknownIntl');
+  if(input.type==='phone' && found.length===0 && (input.text||'').replace(/\D/g,'').length>=8) {/* plain number, low info */}
+
+  const w={urgency:26,payment:24,sensitive:26,impersonation:16,url:24,reward:18,unknownIntl:16};
+  let score=found.reduce((s,id)=>s+w[id],0)+(found.length>=3?8:0);
+  score=Math.min(98,score);
+  if(found.length===0) score=Math.min(score,8);
+  let level='LOW'; if(score>=75)level='CRITICAL'; else if(score>=50)level='HIGH'; else if(score>=25)level='MEDIUM';
+  // Demo electricity message tuned to HIGH 87
+  if(/electricity connection will be disconnected/.test(txt)&&/pay immediately/.test(txt)){score=87;level='HIGH';}
+
+  await new Promise(r=>setTimeout(r,1400)); // simulate inference latency
+  return {
+    riskLevel:level, riskScore:score,
+    category:input.category||'SMS',
+    summary:level==='LOW'
+      ?{en:'No strong scam indicators were detected. Stay alert — absence of indicators is not a guarantee of safety.',hi:'कोई मज़बूत धोखाधड़ी संकेत नहीं मिला। फिर भी सतर्क रहें — यह सुरक्षा की गारंटी नहीं है।'}
+      :{en:'This communication shows indicators commonly associated with scams. Treat it with caution and verify independently.',hi:'इस संदेश में धोखाधड़ी से जुड़े आम संकेत मिले हैं। सावधानी रखें और स्वतंत्र रूप से जाँच करें।'},
+    signals:found.map(id=>({id,...SIGNALS[id]})),
+    recommendedActions:[
+      {en:"Don't rush — take a moment before acting.",hi:'जल्दबाज़ी न करें — कदम उठाने से पहले रुकें।'},
+      {en:'Never share OTP, PIN or passwords with anyone.',hi:'OTP, PIN या पासवर्ड किसी से साझा न करें।'},
+      {en:'Verify independently using the official app, website or helpline.',hi:'आधिकारिक app, website या helpline से खुद जाँच करें।'},
+      {en:'If fraud occurred, call 1930 or report at cybercrime.gov.in.',hi:'धोखा हो चुका हो तो 1930 पर call करें या cybercrime.gov.in पर रिपोर्ट करें।'}
+    ]
+  };
+}
+
+/* ---------- Check page logic ---------- */
+let inputType='message', category='SMS', lastResult=null;
+function setInputType(tp,btn){inputType=tp;document.querySelectorAll('.itab').forEach(b=>b.classList.remove('tab-active'));btn.classList.add('tab-active');
+  document.getElementById('uploadZone').classList.toggle('hidden',!(tp==='screenshot'||tp==='qr'));
+  const ph={message:'e.g. URGENT: Your account will be blocked today...',url:'e.g. http://sbi-verify-kyc.xyz/login',phone:'e.g. +92 300 1234567',payment:'e.g. Pay ₹2,999 KYC fee to UPI id refund@upi immediately',screenshot:'Extracted text from screenshot will appear here...',qr:'Extracted QR payment details will appear here...'};
+  document.getElementById('scamInput').placeholder=ph[tp]||ph.message;}
+function setCat(c,btn){category=c;document.querySelectorAll('.cat').forEach(b=>b.classList.remove('cat-active'));btn.classList.add('cat-active');}
+function mockOCR(inp){ if(!inp.files.length)return;
+  document.getElementById('ocrStatus').classList.remove('hidden');
+  document.getElementById('scamInput').value='[Simulated OCR] Dear customer, your KYC has expired. Your account will be suspended today. Click http://bank-kyc-update.xyz and share OTP to reactivate.';}
+
+const DEMOS=[
+ {label:'electricity',cat:'SMS',text:'URGENT: Your electricity connection will be disconnected today at 9:30 PM. Your bill is pending. Pay immediately using the link below to avoid disconnection: http://power-bill-pay.xyz/now'},
+ {label:'parcel',cat:'SMS',text:'Your parcel is held at customs. Pay ₹249 customs fee within 2 hours or the package will be returned. Pay here: bit.ly/pkg-fee'},
+ {label:'job',cat:'WhatsApp',text:'Congratulations! You are selected for a work-from-home job. Earn ₹5000 daily, guaranteed. Pay ₹999 registration fee to confirm your seat today.'},
+ {label:'kyc',cat:'SMS',text:'Dear customer, your bank KYC has expired. Account will be blocked today. Update immediately at http://sbi-kyc-verify.top and confirm with OTP.'},
+ {label:'safe',cat:'SMS',text:'Hi! Reminder: our society meeting is on Sunday at 11 AM in the community hall. See you there. - Resident Welfare Association'}
+];
+function loadDemoMsg(i){nav('check');const d=DEMOS[i];document.getElementById('scamInput').value=d.text;
+  document.querySelectorAll('.cat').forEach(b=>{b.classList.toggle('cat-active',b.textContent.trim()===d.cat)});category=d.cat;
+  document.getElementById('scamInput').scrollIntoView({behavior:'smooth',block:'center'});}
+
+async function runAnalysis(){
+  const text=document.getElementById('scamInput').value.trim();
+  const err=document.getElementById('inputError');
+  if(!text){err.classList.remove('hidden');return} err.classList.add('hidden');
+  document.getElementById('resultIdle').classList.add('hidden');
+  document.getElementById('resultBox').classList.add('hidden');
+  const load=document.getElementById('resultLoading');load.classList.remove('hidden');
+  const steps=['Scanning for urgency & threat language…','Checking payment & sensitive-data requests…','Analyzing URL & impersonation patterns…','Scoring risk & building explanation…'];
+  let si=0;const iv=setInterval(()=>{si=(si+1)%steps.length;document.getElementById('loadingStep').textContent=steps[si]},420);
+  try{
+    lastResult=await analyzeScam({text,type:inputType,category});
+    renderResult(lastResult);
+  }catch(e){
+    document.getElementById('resultBox').innerHTML='<div class="card p-6 text-red-600 font-bold">⚠️ Something went wrong. Please try again.</div>';
+  }finally{clearInterval(iv);load.classList.add('hidden');document.getElementById('resultBox').classList.remove('hidden');}
+  if(demoActive&&demoStep===1)demoNext();
+}
+function pick(o){return o[LANG]||o.hi&&LANG==='hi'?o[LANG]||o.en:o.en}
+function txt(o){return (LANG!=='en'&&o[LANG])?o[LANG]:o.en}
+
+function renderResult(r){
+  const box=document.getElementById('resultBox');
+  const sevLabel={high:'HIGH severity',medium:'MEDIUM severity',low:'LOW severity'};
+  const sigs=r.signals.length? r.signals.map(s=>`
+    <div class="bg-white rounded-xl p-4 sev-${s.sev} shadow-sm border border-slate-100">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <p class="font-black text-navy">${s.icon} ${txt(s.name)}</p>
+        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded ${s.sev==='high'?'bg-red-100 text-red-700':s.sev==='medium'?'bg-amber-100 text-amber-700':'bg-green-100 text-green-700'}">${sevLabel[s.sev]}</span>
+      </div>
+      <p class="text-sm text-slate-600 mt-1.5">${SIMPLE?txt(s.simple):txt(s.tech)}</p>
+    </div>`).join('')
+   :`<div class="bg-white rounded-xl p-4 border border-slate-100 text-sm text-slate-600">✅ No specific risk signals detected in this content.</div>`;
+  box.innerHTML=`
+   <div class="card p-6 text-center" role="status" aria-live="polite">
+     <span class="risk-${r.riskLevel} inline-block font-black text-lg px-6 py-2 rounded-xl tracking-wide">${r.riskLevel==='CRITICAL'?'🚨':r.riskLevel==='HIGH'?'⚠️':r.riskLevel==='MEDIUM'?'🟠':'✅'} ${r.riskLevel} RISK</span>
+     <p class="mt-3 text-4xl font-black text-navy">${r.riskScore}<span class="text-lg text-slate-400">/100</span></p>
+     <p class="text-xs font-bold text-slate-400 uppercase">Risk Score • Channel: ${r.category}</p>
+     <div class="scorebar mt-3 max-w-sm mx-auto"><div class="barfill h-full ${r.riskScore>=75?'bg-red-800':r.riskScore>=50?'bg-red-600':r.riskScore>=25?'bg-amber-500':'bg-igreen'}" style="width:${r.riskScore}%"></div></div>
+     <p class="mt-4 text-slate-700 font-semibold">${txt(r.summary)}</p>
+     <p class="text-[11px] text-slate-400 mt-2">SURAKSHA can never be 100% certain — these are probabilistic indicators, not proof.</p>
+   </div>
+   <div class="card p-6 bg-soft">
+     <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+       <h3 class="font-black text-navy">🧠 How did SURAKSHA reach this result?</h3>
+       <button onclick="toggleSimple()" class="text-xs font-black px-3 py-1.5 rounded-full border-2 ${SIMPLE?'bg-saffron text-white border-saffron':'border-navy text-navy bg-white'}">${SIMPLE?'✓ Explain Simply: ON':'💬 Explain Simply'}</button>
+     </div>
+     <div class="space-y-3">${sigs}</div>
+   </div>
+   <div class="card p-6">
+     <h3 class="font-black text-navy mb-3">🛡️ Immediate safety actions</h3>
+     <ol class="space-y-2 text-sm">${r.recommendedActions.map((a,i)=>`<li class="flex gap-2"><span class="w-6 h-6 shrink-0 rounded-full bg-navy text-white text-xs font-black flex items-center justify-center">${i+1}</span><span class="text-slate-700 font-medium">${txt(a)}</span></li>`).join('')}</ol>
+     <div class="flex flex-wrap gap-2 mt-4">
+       <button onclick="nav('report')" class="btn-primary font-bold px-4 py-2.5 rounded-xl text-sm">🚨 Go to Official Reporting</button>
+       <button onclick="nav('pay')" class="btn-secondary font-bold px-4 py-2.5 rounded-xl text-sm">⏸️ Run Before-You-Pay Check</button>
+     </div>
+   </div>`;
+}
+function toggleSimple(){SIMPLE=!SIMPLE;if(lastResult)renderResult(lastResult);if(demoActive&&demoStep===3)demoNext();}
+
+/* ---------- Before You Pay ---------- */
+const PAYQ=[
+ {q:'Do I personally know and trust the recipient?',good:'yes'},
+ {q:'Did I independently verify this request (official app / known number)?',good:'yes'},
+ {q:'Was I pressured to pay immediately?',good:'no'},
+ {q:'Am I being asked for confidential information (OTP/PIN/password)?',good:'no'},
+ {q:'Did this request come unexpectedly / out of the blue?',good:'no'}
+];
+function buildPay(){
+  const box=document.getElementById('payChecklist');
+  PAYQ.forEach((it,i)=>{
+    const d=document.createElement('fieldset');
+    d.className='bg-soft rounded-xl p-4';
+    d.innerHTML=`<legend class="sr-only">${it.q}</legend><p class="font-semibold text-sm text-navy">${i+1}. ${it.q}</p>
+     <div class="flex gap-3 mt-2">
+       <label class="flex items-center gap-1.5 text-sm font-bold cursor-pointer"><input type="radio" name="pq${i}" value="yes" class="w-4 h-4"> Yes</label>
+       <label class="flex items-center gap-1.5 text-sm font-bold cursor-pointer"><input type="radio" name="pq${i}" value="no" class="w-4 h-4"> No</label>
+     </div>`;
+    box.appendChild(d);
+  });
+}
+function evalPay(){
+  let flags=0,answered=0;
+  PAYQ.forEach((it,i)=>{const v=document.querySelector(`input[name=pq${i}]:checked`);if(v){answered++;if(v.value!==it.good)flags++;}});
+  const err=document.getElementById('payError');
+  if(answered<PAYQ.length){err.classList.remove('hidden');return}err.classList.add('hidden');
+  const amt=document.getElementById('payAmt').value,to=document.getElementById('payTo').value||'the recipient',why=(document.getElementById('payWhy').value||'').toLowerCase();
+  if(/kyc|fee|otp|refund|customs|registration|lottery|prize/.test(why))flags++;
+  const res=document.getElementById('payResult');
+  if(flags>0){
+    res.innerHTML=`<div class="card p-6 border-2 !border-red-300 bg-red-50/60" role="alert">
+      <span class="risk-HIGH inline-block font-black px-5 py-2 rounded-xl text-lg">⛔ PAUSE AND VERIFY</span>
+      <p class="mt-3 font-bold text-red-700">${flags} warning sign${flags>1?'s':''} detected ${amt?`for this ₹${amt} payment to ${to}`:''}. Do not pay yet.</p>
+      <div class="bg-white rounded-xl p-4 mt-4 text-sm space-y-2">
+        <p class="font-black text-navy">Simple safety actions:</p>
+        <p>1️⃣ <b>Don't rush.</b> Real requests survive a 10-minute pause; scams don't.</p>
+        <p>2️⃣ <b>Don't share OTP / PIN / password</b> — ever, with anyone.</p>
+        <p>3️⃣ <b>Verify independently</b> using an official app, website or a number you already trust.</p>
+        <p>4️⃣ <b>If fraud already occurred</b>, call <a href="tel:1930" class="underline font-bold text-navy">1930</a> or report at <a class="underline font-bold text-navy" target="_blank" rel="noopener" href="https://www.cybercrime.gov.in/">cybercrime.gov.in</a>.</p>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <button onclick="nav('check')" class="btn-primary font-bold px-4 py-2.5 rounded-xl text-sm">🔍 Analyze the message too</button>
+        <button onclick="nav('report')" class="btn-secondary font-bold px-4 py-2.5 rounded-xl text-sm">🚨 Reporting options</button>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">Simulation only — SURAKSHA never performs or blocks real payments.</p>
+    </div>`;
+  }else{
+    res.innerHTML=`<div class="card p-6 border-2 !border-green-300 bg-green-50/60" role="status">
+      <span class="risk-LOW inline-block font-black px-5 py-2 rounded-xl text-lg">✅ LOWER RISK</span>
+      <p class="mt-3 text-slate-700 font-semibold">Your answers show no obvious warning signs. Still: pay only via official apps, double-check the UPI ID / account name on screen, and keep the receipt.</p>
+      <p class="text-[11px] text-slate-500 mt-3">This is guidance only, not a guarantee. Simulation only — no real payment is made.</p>
+    </div>`;
+  }
+  res.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* ---------- Learn ---------- */
+const SCENARIOS=[
+ {t:'🪪 Fake KYC',m:'"Your bank KYC expires TODAY. Click this link and enter OTP to keep your account active."',c:['Click the link immediately','Share the OTP when asked','Verify independently via the bank\'s official app first','Forward to friends so they can act fast'],a:2,e:'Banks never expire KYC via random links or ask for OTP. Always open your bank\'s official app or visit the branch. Forwarding unverified messages spreads panic.'},
+ {t:'📦 Fake Parcel',m:'"Your parcel is stuck at customs. Pay ₹249 within 2 hours or it will be returned."',c:['Pay the small fee — it\'s only ₹249','Reply with your address & ID proof','Check the courier\'s official app/site using your real tracking number','Call the number in the SMS'],a:2,e:'Small "fees" are bait; the real goal is your card/UPI details. Verify only on the courier\'s official website with your genuine tracking ID.'},
+ {t:'💼 Fake Job Offer',m:'"Work from home! Earn ₹5,000/day guaranteed. Pay ₹999 registration to confirm your seat."',c:['Pay registration — the salary covers it','Share Aadhaar & PAN to "register"','Refuse — real employers never charge you to get a job','Ask them to deduct the fee from first salary'],a:2,e:'Legitimate employers never ask candidates to pay. Advance-fee + guaranteed income = classic job scam.'},
+ {t:'🎧 Fake Customer Support',m:'A "support agent" found via a search result asks you to install a screen-sharing app to process your refund.',c:['Install the app — they sound professional','Give them your UPI PIN to "receive" the refund','Hang up and use only the number/chat inside the official app','Send a small test payment'],a:2,e:'Screen-sharing apps let scammers watch your OTPs and empty accounts. Refunds never require your PIN. Only use official in-app support.'},
+ {t:'👮 Fake Government Official',m:'A caller claims to be police: "A parcel in your name has drugs. Pay a security deposit or face digital arrest."',c:['Pay the deposit quietly','Stay on the video call as ordered','Disconnect — "digital arrest" is not real; verify with the real police station','Share your Aadhaar to prove innocence'],a:2,e:'"Digital arrest" does not exist in law. Police never demand deposits over calls. Disconnect and report to 1930 / cybercrime.gov.in.'},
+ {t:'📈 Fake Investment',m:'A trading group promises "guaranteed 40% monthly returns" and shows screenshots of profits.',c:['Invest a small amount to test','Invest big before the offer closes','Avoid — guaranteed high returns are a fraud hallmark; check SEBI-registered advisors','Recruit friends to invest together'],a:2,e:'No legitimate investment guarantees returns. Screenshots are easily faked. Verify SEBI registration before investing anything.'},
+ {t:'🔗 Phishing Link',m:'"Your account will be blocked today unless you click this link and re-verify."',c:['Click immediately — no time to lose','Share OTP if the page asks','Verify independently first via the official app/website','Forward to friends'],a:2,e:'Urgency + link + verification demand = phishing pattern. Type the official website yourself or open the official app. Never act from the link.'},
+ {t:'▦ QR / Payment Scam',m:'A "buyer" for your old sofa sends a QR code: "Scan and enter PIN to RECEIVE ₹5,000."',c:['Scan and enter PIN to receive money','Scan quickly before they change their mind','Refuse — scanning + PIN always SENDS money, never receives it','Send them a QR back'],a:2,e:'You never need to scan a QR or enter a PIN to RECEIVE money. That flow only sends money out. Classic marketplace scam.'},
+ {t:'🔐 OTP Scam',m:'"I accidentally sent my OTP to your number. Please share the 6-digit code you just received."',c:['Share it — seems like an honest mistake','Share half the digits only','Never share it — that OTP protects YOUR account','Call them back to confirm'],a:2,e:'OTPs sent to your phone secure YOUR accounts. "Accidental OTP" stories are engineered to hijack your bank, UPI or WhatsApp.'},
+ {t:'👤 Social-Media Impersonation',m:'A friend\'s profile messages: "Emergency! Send ₹8,000 now, I\'ll return it tonight."',c:['Send immediately — friends come first','Ask which hospital, then send','Call your friend on their known number to verify before anything','Send half now, half later'],a:2,e:'Cloned/hacked profiles exploit trust and urgency. A 30-second phone call to the real person defeats this scam completely.'}
+];
+let sIdx=0,score=+(localStorage.getItem('sk_score')||0),streak=+(localStorage.getItem('sk_streak')||0),correct=+(localStorage.getItem('sk_correct')||0);
+function renderScenario(){
+  const s=SCENARIOS[sIdx],box=document.getElementById('scenarioBox');
+  box.innerHTML=`
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <span class="text-xs font-black text-slate-400 uppercase">Scenario ${sIdx+1} / ${SCENARIOS.length}</span>
+      <span class="bg-navy text-white text-xs font-black px-3 py-1 rounded-full">${s.t}</span>
+    </div>
+    <div class="bg-soft border-l-4 border-saffron rounded-xl p-4 mt-4">
+      <p class="text-[10px] font-black text-red-500 uppercase mb-1">Demo scenario — not a real message</p>
+      <p class="font-semibold text-navy">${s.m}</p>
+    </div>
+    <p class="font-black text-navy mt-4 mb-2">What would you do?</p>
+    <div class="space-y-2" id="choiceBox">
+      ${s.c.map((c,i)=>`<button onclick="answer(${i})" class="w-full text-left bg-white border-2 border-slate-200 hover:border-navy rounded-xl p-3.5 font-semibold text-sm transition">${String.fromCharCode(65+i)}. ${c}</button>`).join('')}
+    </div>
+    <div id="feedback" class="mt-4"></div>`;
+}
+function answer(i){
+  const s=SCENARIOS[sIdx],fb=document.getElementById('feedback'),ok=i===s.a;
+  document.querySelectorAll('#choiceBox button').forEach((b,j)=>{b.disabled=true;b.classList.add('opacity-70');
+    if(j===s.a)b.classList.add('!border-green-500','!bg-green-50','!opacity-100');
+    else if(j===i)b.classList.add('!border-red-400','!bg-red-50');});
+  if(ok){streak++;correct++;score=Math.min(100,score+10);}else{streak=0;score=Math.max(0,score-2);}
+  localStorage.setItem('sk_score',score);localStorage.setItem('sk_streak',streak);localStorage.setItem('sk_correct',correct);
+  fb.innerHTML=`<div class="rounded-xl p-4 ${ok?'bg-green-50 border-2 border-green-300':'bg-amber-50 border-2 border-amber-300'}">
+     <p class="font-black ${ok?'text-green-700':'text-amber-700'}">${ok?'✅ Correct — that is the safer behaviour!':'⚠️ Risky choice. Here is the safer behaviour:'}</p>
+     <p class="text-sm text-slate-700 mt-1">${s.e}</p>
+     <button onclick="nextScenario()" class="btn-primary mt-3 font-bold px-5 py-2.5 rounded-xl text-sm">Next scenario →</button>
+  </div>`;
+  updateGam();
+}
+function nextScenario(){sIdx=(sIdx+1)%SCENARIOS.length;renderScenario();}
+function updateGam(){
+  document.getElementById('safetyScore').textContent=score;
+  document.getElementById('scoreFill').style.width=score+'%';
+  document.getElementById('streak').textContent=streak;
+  const badges=[{n:'🥉 Aware Citizen',req:3},{n:'🥈 Scam Defender',req:6},{n:'🥇 Digital Guardian',req:10}];
+  document.getElementById('badgeBox').innerHTML=badges.map(b=>{const got=correct>=b.req;
+    return `<div class="flex items-center justify-between rounded-lg px-3 py-2 ${got?'badge-earned':'bg-soft text-slate-400'}"><span class="font-bold">${b.n}</span><span class="text-xs font-black">${got?'EARNED':correct+'/'+b.req}</span></div>`}).join('');
+}
+
+/* ---------- Dashboard charts ---------- */
+function buildDash(){
+  const cats=[['Phishing',88],['Payment Fraud',76],['Impersonation',64],['Fake KYC',58],['Job Scam',49],['Investment',44],['Cust. Support',33],['Parcel Scam',29]];
+  document.getElementById('catChart').innerHTML=cats.map(([n,v])=>`
+    <div class="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+      <span class="text-[10px] font-black text-navy">${v}%</span>
+      <div class="chart-bar w-full rounded-t-lg bg-gradient-to-t from-navy to-navy3" style="height:${v}%"></div>
+      <span class="text-[9px] font-bold text-slate-500 text-center leading-tight">${n}</span>
+    </div>`).join('');
+  const chans=[['WhatsApp',38,'bg-green-600'],['SMS',31,'bg-navy'],['Phone Call',14,'bg-saffron'],['Email',10,'bg-navy3'],['Website',7,'bg-slate-400']];
+  document.getElementById('chanChart').innerHTML=chans.map(([n,v,c])=>`
+    <div><div class="flex justify-between font-bold text-navy"><span>${n}</span><span>${v}%</span></div>
+    <div class="scorebar mt-1"><div class="barfill h-full ${c}" style="width:${v}%"></div></div></div>`).join('');
+}
+
+/* ---------- LIVE DEMO ---------- */
+let demoActive=false,demoStep=0;
+const DEMO_STEPS=[
+ '1/7 · A suspicious message arrives (fictional demo). Press Next to load it into the scanner.',
+ '2/7 · Running SURAKSHA AI analysis… Press Next (or wait) to analyze.',
+ '3/7 · Explainable result: HIGH risk with the exact indicators detected. Press Next.',
+ '4/7 · "Explain Simply" converts technical language into everyday words. Press Next.',
+ '5/7 · Immediate protection: don\'t rush, don\'t share OTP, verify independently. Press Next.',
+ '6/7 · Official reporting: 1930 helpline, cybercrime.gov.in and Chakshu. Press Next.',
+ '7/7 · Privacy by design: no OTP/PIN ever requested; demo data deletable. Press Next to finish.'
+];
+function startDemo(){demoActive=true;demoStep=0;document.getElementById('demoBanner').classList.remove('hidden');showDemoStep();}
+function showDemoStep(){document.getElementById('demoStepText').textContent=DEMO_STEPS[demoStep];}
+function demoNext(){
+  demoStep++;
+  if(demoStep>=DEMO_STEPS.length+0){ if(demoStep>DEMO_STEPS.length-1){endDemo(true);return} }
+  showDemoStep();
+  switch(demoStep){
+    case 1: loadDemoMsg(0); break;
+    case 2: runAnalysis(); break;
+    case 3: break;
+    case 4: if(!SIMPLE){SIMPLE=true;if(lastResult)renderResult(lastResult);} document.getElementById('resultBox')?.scrollIntoView({behavior:'smooth'}); break;
+    case 5: break;
+    case 6: nav('report'); break;
+    case 7: nav('home'); document.getElementById('privacy')?.scrollIntoView({behavior:'smooth'}); break;
+  }
+}
+function endDemo(done){demoActive=false;document.getElementById('demoBanner').classList.add('hidden');
+  if(done){nav('home');setTimeout(()=>alert('✅ Live demo complete!\n\nSURAKSHA AI — Think. Check. Report.\n"Don\'t wait to become a victim. Check before you trust."'),300);}}
+
+/* ---------- Privacy: clear demo data ---------- */
+function clearDemoData(){localStorage.removeItem('sk_score');localStorage.removeItem('sk_streak');localStorage.removeItem('sk_correct');
+  score=0;streak=0;correct=0;lastResult=null;updateGam();
+  document.getElementById('clearMsg').classList.remove('hidden');}
+
+/* ---------- init ---------- */
+buildPay();renderScenario();updateGam();buildDash();applyLang();
+</script>
+</body>
+</html>
